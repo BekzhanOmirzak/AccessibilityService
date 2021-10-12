@@ -6,6 +6,7 @@ import android.util.Log
 import android.view.KeyEvent
 import android.view.accessibility.AccessibilityEvent
 import android.widget.Toast
+import java.lang.Exception
 
 class MyService : AccessibilityService() {
 
@@ -20,7 +21,19 @@ class MyService : AccessibilityService() {
         if (event.eventType == AccessibilityEvent.TYPE_VIEW_CLICKED) {
             Toast.makeText(this, "${event.text}", Toast.LENGTH_SHORT).show()
             Log.e(TAG, " Text :  ${event.text}")
+        } else if (event.eventType == AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED) {
+            if (event.text.size != 0) {
+                val first_text = event.text[event.text.size - 1].toString();
+                try {
+                    val letter = first_text[first_text.length - 1];
+                    Toast.makeText(this, "Буква : $letter", Toast.LENGTH_SHORT).show()
+                } catch (ex: Exception) {
+
+                }
+            }
         }
+
+
     }
 
     override fun onKeyEvent(event: KeyEvent): Boolean {

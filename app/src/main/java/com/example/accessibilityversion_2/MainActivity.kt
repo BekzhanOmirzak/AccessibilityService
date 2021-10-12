@@ -11,12 +11,14 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-
         findViewById<TextView>(R.id.click).setOnClickListener {
             Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).also {
                 startActivity(it)
             }
         }
 
+
     }
+
+
 }
