@@ -1,6 +1,7 @@
 package com.example.accessibilityversion_2
 
 import android.accessibilityservice.AccessibilityService
+import android.media.AudioManager
 import android.util.Log
 import android.view.KeyEvent
 import android.view.accessibility.AccessibilityEvent
@@ -25,11 +26,18 @@ class MyService : AccessibilityService() {
     override fun onKeyEvent(event: KeyEvent): Boolean {
         val action = event.action;
         val code = event.keyCode;
-        Log.e(TAG, "onKeyEvent: Action :  $action")
+        Log.e(TAG, "onKeyEvent: Action   : $action")
         Log.e(TAG, "onKeyEvent: Key_Code : $code")
-//        if (action == KeyEvent.ACTION_UP) {
-//            if(code==)
-//        }
+        if (action == KeyEvent.ACTION_UP) {
+            when (code) {
+                KeyEvent.KEYCODE_VOLUME_DOWN -> {
+                    Toast.makeText(this, "Уменшение грамкость", Toast.LENGTH_SHORT).show()
+                }
+                KeyEvent.KEYCODE_VOLUME_UP -> {
+                    Toast.makeText(this, "Увеличение грамкость", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
         return true;
     }
 
