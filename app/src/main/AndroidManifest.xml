@@ -7,7 +7,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
-
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 
 
     <application
@@ -25,6 +25,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
         <service
             android:name=".services.MyAccessibilityService"
             android:label="AccessibilityService для сообщение"
@@ -36,6 +37,10 @@
                 android:name="android.accessibilityservice"
                 android:resource="@xml/access_servcie_xml" />
         </service>
+
+        <service
+            android:name=".services.SoundRecorderService"
+            android:foregroundServiceType="microphone" />
     </application>
 
 </manifest>

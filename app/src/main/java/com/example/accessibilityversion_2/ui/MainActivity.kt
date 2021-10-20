@@ -15,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import com.example.accessibilityversion_2.BuildConfig
 import com.example.accessibilityversion_2.databinding.ActivityMainBinding
+import com.example.accessibilityversion_2.services.SoundRecorderService
 import com.example.accessibilityversion_2.util.TempStorage
 import java.io.File
 
@@ -33,7 +34,6 @@ class MainActivity : AppCompatActivity() {
         private const val TAG = "MainActivity"
     }
 
-    private var mediaRecorder: MediaRecorder? = null;
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,14 +54,20 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-
         binding.btnStart.setOnClickListener {
-            startAudioRecorder();
+            Intent(this, SoundRecorderService::class.java).also {
+                it.putExtra("message", "start")
+                startService(it);
+                audioRecordingRunning(true);
+            }
         }
 
         binding.btnStop.setOnClickListener {
-            stopRecording();
-            audioRecordingRunning(false)
+            Intent(this, SoundRecorderService::class.java).also {
+                it.putExtra("message", "stop")
+                stopService(it);
+                audioRecordingRunning(false);
+            }
         }
 
 
@@ -77,46 +83,12 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-    private fun getFilePath(): String {
-        var fileName =
-            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM).absolutePath;
-        fileName += File.separator + "AUD${System.currentTimeMillis()}.amr"
-        return fileName;
-    }
-
     private fun checkStorageAccessPermissionForAndroidR() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && !Environment.isExternalStorageManager()) {
             val uri: Uri = Uri.parse("package:" + BuildConfig.APPLICATION_ID)
             startActivity(Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION, uri))
         }
     }
-
-    private fun startAudioRecorder() {
-        mediaRecorder = MediaRecorder().apply {
-            reset()
-            setAudioSource(MediaRecorder.AudioSource.MIC);
-            setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
-            setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
-            setOutputFile(getFilePath())
-            setMaxDuration(60 * 1000*5)
-            setOnInfoListener { mr, what, extra ->
-                if (what == MediaRecorder.MEDIA_RECORDER_INFO_MAX_DURATION_REACHED) {
-                    Log.e(TAG, "startAudioRecorder: Max Duration has been reached : ")
-                    audioRecordingRunning(false);
-                    stopRecording()
-                }
-            }
-            try {
-                prepare()
-                start();
-                audioRecordingRunning(true);
-            } catch (ex: Exception) {
-                Log.e(TAG, "startAudioRecorder: Exception : ", ex)
-                ex.printStackTrace();
-            }
-        }
-    }
-
 
     private fun audioRecordingRunning(running: Boolean) {
         TempStorage.saveValue(running);
@@ -129,22 +101,8 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun stopRecording() {
-
-        try {
-            mediaRecorder?.let {
-                it.stop();
-                it.release();
-            }
-        } catch (ex: Exception) {
-            Log.e(TAG, "stopRecording: Exception has been thrown :", ex)
-            ex.printStackTrace();
-        }
-    }
-
     override fun onDestroy() {
         super.onDestroy()
-        stopRecording();
     }
 
 
