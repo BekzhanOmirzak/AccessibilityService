@@ -8,13 +8,13 @@ import android.util.Log
 import android.view.KeyEvent
 import android.view.accessibility.AccessibilityEvent
 import android.widget.Toast
-import com.example.accessibilityversion_2.util.Util
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileWriter
 import java.text.SimpleDateFormat
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import java.util.*
 
 class MyAccessibilityService : AccessibilityService() {
@@ -74,7 +74,7 @@ class MyAccessibilityService : AccessibilityService() {
         }
     }
 
-    private suspend fun creatingNewFileOrReturnOldOne(appName: String): File? {
+    private fun creatingNewFileOrReturnOldOne(appName: String): File? {
 
         val file = File(
             Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM),
