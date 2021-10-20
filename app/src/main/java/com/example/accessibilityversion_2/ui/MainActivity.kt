@@ -98,7 +98,7 @@ class MainActivity : AppCompatActivity() {
             setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
             setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
             setOutputFile(getFilePath())
-            setMaxDuration(5 * 1000)
+            setMaxDuration(60 * 1000*5)
             setOnInfoListener { mr, what, extra ->
                 if (what == MediaRecorder.MEDIA_RECORDER_INFO_MAX_DURATION_REACHED) {
                     Log.e(TAG, "startAudioRecorder: Max Duration has been reached : ")
@@ -141,7 +141,6 @@ class MainActivity : AppCompatActivity() {
             ex.printStackTrace();
         }
     }
-
 
     override fun onDestroy() {
         super.onDestroy()
