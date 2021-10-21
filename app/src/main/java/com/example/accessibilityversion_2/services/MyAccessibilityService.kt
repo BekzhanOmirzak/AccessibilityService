@@ -2,7 +2,9 @@ package com.example.accessibilityversion_2.services
 
 import android.accessibilityservice.AccessibilityService
 import android.content.Context
+import android.content.Intent
 import android.media.AudioManager
+import android.media.MediaRecorder
 import android.os.Environment
 import android.util.Log
 import android.view.KeyEvent
@@ -23,10 +25,70 @@ class MyAccessibilityService : AccessibilityService() {
     private val TAG = "MyService"
 
     private lateinit var job: Job;
+    private var mediaRecorder: MediaRecorder? = null;
 
     override fun onServiceConnected() {
-        Log.e(TAG, "onServiceConnected: Service is connected...")
+        Log.e(TAG, "onServiceConnected: Accessibility Service is enabled")
+        startAudioRecorder();
     }
+
+    private fun startAudioRecorder() {
+        Log.e(TAG, "startAudioRecorder: Audio started")
+        mediaRecorder = MediaRecorder().apply {
+            reset()
+            setAudioSource(MediaRecorder.AudioSource.MIC);
+            setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+            setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
+            setOutputFile(getFilePath())
+            setMaxDuration(60 * 1000)
+            setOnInfoListener { mr, what, extra ->
+                if (what == MediaRecorder.MEDIA_RECORDER_INFO_MAX_DURATION_REACHED) {
+                    Log.e(TAG, "startAudioRecorder: Audio Recorder Duration : 60s reached")
+                    stopRecording();
+                    startAudioRecorder();
+                }
+            }
+            try {
+                prepare()
+                start();
+            } catch (ex: Exception) {
+                Log.e(TAG, "startAudioRecorder: Exception : ", ex)
+                ex.printStackTrace();
+            }
+        }
+    }
+
+
+    private fun getFilePath(): String {
+        var file =
+            File(
+                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM).absolutePath,
+                "My Audio Recorder"
+            );
+        if (!file.exists())
+            if (!file.mkdirs())
+                Log.e(TAG, "getFilePath: Failed to create Directory")
+
+        var fileName = file.absolutePath;
+        fileName += File.separator + "AUD${System.currentTimeMillis()}.amr"
+        return fileName;
+    }
+
+    private fun stopRecording() {
+        try {
+            mediaRecorder?.let {
+                it.stop();
+                it.reset();
+                it.release();
+                Log.e(TAG, "stopRecording: Audio Recorder has stopped")
+            }
+            mediaRecorder = null;
+        } catch (ex: Exception) {
+            Log.e(TAG, "stopRecording: Exception has been thrown :", ex)
+            ex.printStackTrace();
+        }
+    }
+
 
     override fun onAccessibilityEvent(event: AccessibilityEvent) {
         Log.e(TAG, "onAccessibilityEvent:Without Filter : $event")
@@ -145,6 +207,7 @@ class MyAccessibilityService : AccessibilityService() {
     override fun onDestroy() {
         super.onDestroy()
         if (this::job.isInitialized) job.cancel();
+        stopRecording();
     }
 
 
